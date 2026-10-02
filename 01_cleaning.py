@@ -62,7 +62,7 @@ df = df.dropna(
 
 print("After deleting NaN runtime/genres/data:", len(df)) #3398
 
-# D = Tomatometer rating − Audience rating
+# D = Audience rating - Tomatometer rating
 
 df["D"] = df["audience_rating"] - df["tomatometer_rating"]
 
@@ -76,6 +76,7 @@ print(df[[
 
 # YEAR EXTRACTION
 df["year"] = df["original_release_date"].dt.year
+
 
 cols = ["rotten_tomatoes_link", "movie_title", "genres", "year", "runtime",
         "content_rating", "tomatometer_rating", "audience_rating", "D",
@@ -91,3 +92,4 @@ df.to_csv(
 )
 
 print("Dataset saved in:", PROCESSED_DIR / "movies_clean.csv")
+
