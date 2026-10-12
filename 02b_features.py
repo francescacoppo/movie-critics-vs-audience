@@ -1,4 +1,5 @@
 from pathlib import Path
+import numpy as np
 import pandas as pd
 
 BASE_DIR = Path.cwd()
@@ -31,7 +32,7 @@ genre_dummies = genre_dummies[list(GENRE_MAP.keys())].rename(columns=GENRE_MAP)
 df = pd.concat([df, genre_dummies], axis=1)
 
 # Films without genre
-genre_cols = list(GENRE_MAP.values())
+genre_cols = list(GENRE_MAP.values()) #extract columns names
 df = df[df[genre_cols].sum(axis=1) > 0].copy()
 
 # Release period (3 categories)
@@ -46,7 +47,7 @@ df["period"] = pd.Categorical(
     ordered=True,
 )
 
-# Merge NC17 in R.
+# Merge NC17 in R
 df["content_rating"] = df["content_rating"].replace({"NC17": "R", "NC-17": "R"})
 
 # Label d variable 
@@ -58,8 +59,38 @@ df.loc[d.notna() & (d <= q10), "group"] = "audience_lower"
 df.loc[d.notna() & (d >= q90), "group"] = "audience_higher"
 
 
-print(df.groupby("group")["D"].agg(["count", "min", "max"]))
+#print(df.groupby("group")["D"].agg(["count", "min", "max"]))
 
+print(df[["D", "tomatometer_rating"]].corr())
+print(df.groupby("group")["tomatometer_rating"].agg(["mean", "median", "count"]))
+
+# Extreme groups that hold the Tomatometer fixed 
+# Keep the old D-based groups, but rename them so they are not confused
+df = df.rename(columns={"group": "group_D"})
+
+# 1) Audience score expected from the Tomatometer (quadratic curve, because the relation is not exactly linear: ceiling effect at the extremes)
+coefs = np.polyfit(df["tomatometer_rating"], df["audience_rating"], deg=2)
+df["audience_expected"] = np.polyval(coefs, df["tomatometer_rating"])
+
+# 2) Residual: positive = audience rated the movie higher than expected
+df["audience_resid"] = df["audience_rating"] - df["audience_expected"]
+
+# 3) Thresholds computed WITHIN Tomatometer bins, so that both extreme groups have the same Tomatometer distribution
+N_BINS = 5
+df["tomato_bin"] = pd.qcut(df["tomatometer_rating"], q=N_BINS, duplicates="drop")
+by_bin = df.groupby("tomato_bin", observed=True)["audience_resid"]
+low = by_bin.transform(lambda s: s.quantile(0.10))
+high = by_bin.transform(lambda s: s.quantile(0.90))
+
+df["group_resid"] = "middle"
+df.loc[df["audience_resid"] <= low, "group_resid"] = "audience_lower"
+df.loc[df["audience_resid"] >= high, "group_resid"] = "audience_higher"
+df["tomato_bin"] = df["tomato_bin"].astype(str)   # so it saves cleanly to CSV
+
+# Checks 
+print(df.groupby("group_D")["D"].agg(["count", "min", "max"]))
+print(df.groupby("group_resid")["tomatometer_rating"].agg(["mean", "median", "std", "count"]).round(1))
+print(df.groupby("group_resid")["audience_resid"].agg(["min", "max"]).round(1))
 
 PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 

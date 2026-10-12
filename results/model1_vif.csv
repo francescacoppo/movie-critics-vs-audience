@@ -1,0 +1,21 @@
+variable,VIF
+kids_family,2.257257737418665
+"C(content_rating, Treatment(reference='R'))[T.PG]",2.109773368921775
+animation,1.6769870467747283
+comedy,1.5425686595064394
+drama,1.5328972652983335
+"C(content_rating, Treatment(reference='R'))[T.G]",1.3732622440173607
+runtime_10,1.2836847478724671
+action_adventure,1.279985817452117
+"C(content_rating, Treatment(reference='R'))[T.PG-13]",1.2621230750398595
+documentary,1.2590656284165769
+science_fiction_fantasy,1.2405442001782538
+mystery_suspense,1.2353854976994334
+horror,1.2345757248556837
+"C(period, Treatment(reference='2010-2020'))[T.2000s]",1.0953394740767322
+romance,1.085664029360434
+"C(content_rating, Treatment(reference='R'))[T.NR]",1.073380356327062
+"C(period, Treatment(reference='2010-2020'))[T.<2000]",1.0655605149913392
+art_house_international,1.06451189543169
+musical_performing_arts,1.0520668360985392
+Intercept,1.0
