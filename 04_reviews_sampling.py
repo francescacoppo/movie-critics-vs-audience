@@ -104,7 +104,7 @@ corr = validation_df["tomatometer_rating"].corr(validation_df["sample_fresh_pct"
 print(f"Pearson correlation between Tomatometer and % Fresh in the sample: {corr:.4f}")
 # 96%
 # The share of positive reviews tracks the Tomatometer almost perfectly, so sentiment will track it even more closely. 
-# I use this to motivate groups to aim for a specific Tomatometer score.
+# Used to motivate groups to aim for a specific Tomatometer score.
 
 print("\nGlimpse of comparison (5 lines):")
 print(validation_df[["movie_title", "tomatometer_rating", "sample_fresh_pct"]].head())
