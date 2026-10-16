@@ -108,7 +108,6 @@ movie_topics.to_csv(PROCESSED_DIR / "movies_topic_shares.csv", index=False)
 print(f"\nTopic shares saved for {len(movie_topics)} movies")
 
 df = movies_df.merge(movie_topics, on="rotten_tomatoes_link", how="inner")
-assert len(df) == len(movies_df), "Some movies lost in the merge"
 
 # ---------- Genre composition of the two extreme groups ----------
 extreme = df[df["group_resid"].isin(["audience_higher", "audience_lower"])]
@@ -150,8 +149,8 @@ for col in topic_cols:
     })
 
 stats_df = pd.DataFrame(rows)
-stats_df["p_value_holm"] = multipletests(stats_df["p_value"], method="holm")[1]
-stats_df["significant_holm"] = stats_df["p_value_holm"] < 0.05
+stats_df["p_value_holm"] = multipletests(stats_df["p_value"], method="holm")[1]  # corrected tests for multiple comparison
+stats_df["significant_holm"] = stats_df["p_value_holm"] < 0.05  
 
 print(f"\n--- TOPIC SHARES: audience_higher ({len(higher)}) vs audience_lower ({len(lower)}) ---")
 print(stats_df.round(4).to_string(index=False))

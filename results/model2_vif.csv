@@ -1,0 +1,26 @@
+variable,VIF
+topic_5_std,2.466354562171751
+kids_family,2.268726724575757
+"C(content_rating, Treatment(reference='R'))[T.PG]",2.1667024849313496
+topic_3_std,2.051013258935619
+topic_4_std,1.9612264232398045
+comedy,1.88780333593179
+topic_2_std,1.8700676834308694
+animation,1.726277331735584
+drama,1.6439834029773275
+mean_review_sentiment_std,1.4185533147118041
+"C(content_rating, Treatment(reference='R'))[T.G]",1.3894789083983201
+action_adventure,1.3647289542537213
+documentary,1.3039238941667792
+runtime_10,1.3034287736493153
+"C(content_rating, Treatment(reference='R'))[T.PG-13]",1.300426916942882
+horror,1.2972382142746692
+mystery_suspense,1.2856248427923382
+science_fiction_fantasy,1.266250742150131
+"C(period, Treatment(reference='2010-2020'))[T.2000s]",1.108749117700269
+romance,1.1004842019297647
+art_house_international,1.0890345401651897
+"C(content_rating, Treatment(reference='R'))[T.NR]",1.0838222187940474
+"C(period, Treatment(reference='2010-2020'))[T.<2000]",1.0692325810056031
+musical_performing_arts,1.0629471688478185
+Intercept,1.0
