@@ -7,7 +7,7 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from statsmodels.graphics.gofplots import qqplot
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-from statsmodels.tools.tools import add_constant
+#from statsmodels.tools.tools import add_constant
 
 BASE_DIR = Path.cwd()
 print(BASE_DIR) 
@@ -37,7 +37,7 @@ GENRE_COLS = [
 
 PERIOD_REFERENCE = "2010-2020"
 RATING_REFERENCE = "R"
-
+# regression benchmarks
 
 def make_formula(genre_cols):
     genre_terms = " + ".join(genre_cols)
@@ -75,15 +75,14 @@ with (OUTPUT_DIR / "model1_summary.txt").open("w", encoding="utf-8") as f:
     f.write("MODEL 1 — STRUCTURAL\n")
     f.write(f"Formula: {formula}\n")
     f.write(f"Used observations: {int(model1.nobs)} of {len(df)} lines\n")
-    f.write("Robust standard errors: HC3\n\n")
+    f.write("Robust standard errors: HC3\n\n") # handle heteroschedasticity
     f.write(model1.summary().as_text())
     f.write("\n\nNote: runtime_10 is runtime/10; the coefficient is the effect associated to ten minutes more.\n")
 
 
-
 ci = model1.conf_int()
 coef = pd.DataFrame({
-    "term": model1.params.index,
+    "term": model1.params.index, #estiamted variable
     "coefficient": model1.params.values,
     "std_error_HC3": model1.bse.values,
     "p_value": model1.pvalues.values,
@@ -125,9 +124,10 @@ pd.DataFrame(vif_rows).sort_values("VIF", ascending=False).to_csv(
         OUTPUT_DIR / "model1_vif.csv", index=False
     )
 
-# Robustness: leave out film with runtime over 99 percentile of the sample
+# ROBUSTNESS: leave out film with runtime over 99 percentile of the sample
 runtime_cutoff = model_df["runtime_10"].quantile(0.99)
 shorter_df = model_df.loc[model_df["runtime_10"] <= runtime_cutoff].copy()
+
 sensitivity = smf.ols(formula, data=shorter_df).fit(cov_type="HC3")
 with (OUTPUT_DIR / "model1_robustness_no_long_runtime.txt").open("w", encoding="utf-8") as f:
     f.write("ROBUSTNESS\n")

@@ -65,7 +65,7 @@ sampled_reviews = (
     .copy()
 )
 
-print(f"Total number of reviews in the sample: {len(sampled_reviews)}")
+print(f"Total number of reviews in the sample: {len(sampled_reviews)}") #84925
 
 counts = sampled_reviews.groupby("rotten_tomatoes_link").size()
 all_movies = movies_model["rotten_tomatoes_link"]
@@ -73,8 +73,8 @@ counts = counts.reindex(all_movies, fill_value=0)
     
 zero_reviews = (counts == 0).sum()
 less_than_max = (counts < SAMPLE_SIZE).sum()
-print(f"Films with 0 reviews in the sample: {zero_reviews}")
-print(f"Film with less than {SAMPLE_SIZE} reviews in the sample: {less_than_max}")
+print(f"Films with 0 reviews in the sample: {zero_reviews}") #0
+print(f"Film with less than {SAMPLE_SIZE} reviews in the sample: {less_than_max}") #0
     
 
 # Select necessary columns: link, content and label fresh/rotten
@@ -83,7 +83,6 @@ reviews_sample = sampled_reviews[cols_to_keep].copy()
     
 output_sample_path = PROCESSED_DIR / "reviews_sample.csv"
 reviews_sample.to_csv(output_sample_path, index=False)
-print(f"Final sample saved in: {output_sample_path}")
     
 # Share of reviews 'fresh' vs Tomatometer
 df_reviews["review_type"].value_counts()
@@ -103,7 +102,7 @@ validation_df = validation_df.dropna(subset=["sample_fresh_pct"])
 corr = validation_df["tomatometer_rating"].corr(validation_df["sample_fresh_pct"])
 print(f"Pearson correlation between Tomatometer and % Fresh in the sample: {corr:.4f}")
 # 96%
-# The share of positive reviews tracks the Tomatometer almost perfectly
+# The share of positive reviews tracks the Tomatometer almost perfectly - sample is not biased
 
 print("\nGlimpse of comparison (5 lines):")
 print(validation_df[["movie_title", "tomatometer_rating", "sample_fresh_pct"]].head())
