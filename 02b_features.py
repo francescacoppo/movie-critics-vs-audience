@@ -11,7 +11,7 @@ print(PROCESSED_DIR)
 df = pd.read_csv(PROCESSED_DIR / "movies_clean.csv")
 
 
-# 12 categories - project features
+# 12 categories - standardize project features' names
 GENRE_MAP = {
     "Action & Adventure": "action_adventure",
     "Animation": "animation",
@@ -65,7 +65,7 @@ print(df[["D", "tomatometer_rating"]].corr())
 print(df.groupby("group")["tomatometer_rating"].agg(["mean", "median", "count"]))
 
 # Extreme groups that hold the Tomatometer fixed 
-# Keep the old D-based groups, but rename them so they are not confused
+# rename D-based so they are not confused
 df = df.rename(columns={"group": "group_D"})
 
 # 1) Audience score expected from the Tomatometer (quadratic curve, because the relation is not exactly linear: ceiling effect at the extremes)
