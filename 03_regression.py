@@ -75,7 +75,7 @@ with (OUTPUT_DIR / "model1_summary.txt").open("w", encoding="utf-8") as f:
     f.write("MODEL 1 — STRUCTURAL\n")
     f.write(f"Formula: {formula}\n")
     f.write(f"Used observations: {int(model1.nobs)} of {len(df)} lines\n")
-    f.write("Robust standard errors: HC3\n\n") # handle heteroschedasticity
+    f.write("Robust standard errors: HC3\n\n") # handles heteroschedasticity, almost impossible to have constant variance of errors for all observations
     f.write(model1.summary().as_text())
     f.write("\n\nNote: runtime_10 is runtime/10; the coefficient is the effect associated to ten minutes more.\n")
 
