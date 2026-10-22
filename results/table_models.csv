@@ -1,0 +1,5 @@
+Model,R2,Adj_R2,AIC,N
+M1  Structural controls,0.149,0.145,26473.6,3397
+M2  M1 + review sentiment,0.151,0.146,26470.1,3397
+M3  M2 + topic shares,0.157,0.151,26454.7,3397
+M4  M3 + Tomatometer (robustness),0.158,0.152,26453.1,3397

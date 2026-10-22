@@ -1,12 +1,11 @@
 from pathlib import Path
  
 import matplotlib.pyplot as plt
-import networkx as nx
+import networkx as nx # corresponding library in python (=~ igraph)
 import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
-from sklearn.metrics import adjusted_rand_score
  
 BASE_DIR = Path.cwd()
 PROCESSED_DIR = BASE_DIR / "data" / "processed"
@@ -17,10 +16,10 @@ FIG_DIR.mkdir(parents=True, exist_ok=True)
  
 # SETTINGS
 N_NODES = 100                # most frequent words of each group used as nodes
-EDGE_KEEP_FRACTION = 0.10    # keep only the strongest 10% of the possible edges
+# edge thresholds: share of the possible edges kept (None = cut at the mean weight, as in class)
+THRESHOLDS = {"5%": 0.05, "10%": 0.10, "15%": 0.15, "mean weight": None}
+MAIN_THRESHOLD = "10%"       # used for the main analysis and figures; the others are a sensitivity check
 N_PERM = 1000                # random relabelling of the movies 
-N_LABELS = 20                # words labelled in the figure
-RUN_GIRVAN_NEWMAN = True     # robustness check of the communities (slower: a few minutes)
 SEED = 42                    
  
 GROUPS = ["audience_higher", "audience_lower"]
@@ -85,18 +84,17 @@ def cooccurrence(rows):
     return vocab[top], doc_freq, jaccard
  
  
-def strongest_edges(jaccard):
-    """Keep the strongest EDGE_KEEP_FRACTION of all possible pairs (same density for every network).
-    Alternative seen in class: cut at the mean weight (delete_edges(weight < mean)); not used here
-    because it would give the two networks different densities."""
+def strongest_edges(jaccard, keep_fraction):
+    """Keep the strongest `keep_fraction` of all possible pairs (same density for every network).
+    keep_fraction=None: cut at the mean weight (delete_edges(weight < mean) seen in class);
+    here the two networks can end up with different densities."""
     i, j = np.triu_indices_from(jaccard, k=1)
     w = jaccard[i, j]
-    keep = w >= np.quantile(w, 1 - EDGE_KEEP_FRACTION)
+    if keep_fraction is None:
+        keep = w >= w.mean()
+    else:
+        keep = w >= np.quantile(w, 1 - keep_fraction)
     return i[keep], j[keep], w[keep]
- 
- 
-def edge_set(words, i, j):
-    return {tuple(sorted((words[a], words[b]))) for a, b in zip(i, j)}
  
  
 def build_graph(words, doc_freq, i, j, w):
@@ -110,10 +108,16 @@ def build_graph(words, doc_freq, i, j, w):
     return G
  
  
-def eigen_centrality(words, doc_freq, i, j, w):
+def network(cooc_g, keep_fraction):
+    """Word network of one group for a given edge threshold."""
+    words, doc_freq, jaccard = cooc_g
+    i, j, w = strongest_edges(jaccard, keep_fraction)
+    return build_graph(words, doc_freq, i, j, w)
+
+
+def eigen_centrality(G):
     """Eigenvector centrality (largest connected component) of one co-occurrence network.
     Light version of analyse(), used inside the permutation loop."""
-    G = build_graph(words, doc_freq, i, j, w)
     largest = max(nx.connected_components(G), key=len)
     return pd.Series(nx.eigenvector_centrality_numpy(G.subgraph(largest), weight="weight"))
  
@@ -125,30 +129,6 @@ def spearman_common(ev_a, ev_b):
  
  
 # Network measures (the same used in class: degree, closeness, betweenness, eigenvector, communities)
-def centralization(values, theoretical_max):
-    """Freeman centralization: sum of (max - value) over the nodes, divided by the largest value it
-    can take (a star graph with the same number of nodes). 0 = all nodes alike, 1 = star.
-    R: centr_degree / centr_clo / centr_betw (normalized = TRUE)."""
-    v = np.asarray(list(values), dtype=float)
-    return (v.max() - v).sum() / theoretical_max
- 
- 
-def girvan_newman_best(G):
-    """Girvan-Newman communities (R: cluster_edge_betweenness, as seen in class). Edges are removed in
-    order of weighted edge betweenness (distance = 1/weight); the partition with the highest
-    modularity is kept."""
-    def most_valuable_edge(H):
-        eb = nx.edge_betweenness_centrality(H, weight="distance")
-        return max(eb, key=eb.get)
- 
-    best, best_q = None, -np.inf
-    for partition in nx.community.girvan_newman(G, most_valuable_edge=most_valuable_edge):
-        q = nx.community.modularity(G, partition, weight="weight")
-        if q > best_q:
-            best, best_q = partition, q
-    return best, best_q
- 
- 
 def analyse(G_full):
     """Measures are computed on the largest connected component (eigenvector centrality
     is not well defined on disconnected graphs)."""
@@ -158,11 +138,9 @@ def analyse(G_full):
  
     communities = nx.community.greedy_modularity_communities(G, weight="weight")   # R: cluster_fast_greedy
     community_of = {w: k + 1 for k, c in enumerate(communities) for w in c}   # 1 = largest community
-    eigen = nx.eigenvector_centrality_numpy(G, weight="weight")               # R: evcent
+    eigen = nx.eigenvector_centrality(G, weight="weight", max_iter=1000)               # R: evcent
     betw = nx.betweenness_centrality(G, weight="distance")                    # R: betweenness (weighted)
     closeness = nx.closeness_centrality(G)                                    # R: closeness(weights = NA), hops
-    degree_c = nx.degree_centrality(G)                                        # R: degree(normalized = TRUE)
-    betw_hops = nx.betweenness_centrality(G)                                  # unweighted, for centralization only
  
     transitivity = nx.transitivity(G)                  # global clustering
     diameter = nx.diameter(G)                          # in number of steps (unweighted)
@@ -185,40 +163,21 @@ def analyse(G_full):
         "n_nodes_largest_component": n,
         "n_edges_largest_component": G.number_of_edges(),
         "density": nx.density(G),
-        "avg_clustering": nx.average_clustering(G, weight="weight"),
         "transitivity": transitivity,
         "diameter": diameter,                         # <-- Diameter Shortest Path
         "avg_shortest_path_length": avg_path_length,  # <-- Mean Distance Paths
         "mean_degree": np.mean(degree_values),
         "max_degree": max(degree_values),
-        # Freeman centralization (theoretical maxima for an undirected star graph with n nodes,
-        # applied to the normalized centralities, as in igraph with normalized = TRUE)
-        "centralization_degree": centralization(degree_c.values(), n - 2),
-        "centralization_closeness": centralization(closeness.values(), (n - 1) * (n - 2) / (2 * n - 3)),
-        "centralization_betweenness": centralization(betw_hops.values(), n - 1),
-        # do the "central" words (eigenvector) and the "bridge" words (betweenness) coincide?
-        "corr_betw_eigen_pearson": nodes["betweenness"].corr(nodes["eigenvector"]),
-        "corr_betw_eigen_spearman": nodes["betweenness"].corr(nodes["eigenvector"], method="spearman"),
         "n_communities": len(communities),
         "modularity": nx.community.modularity(G, communities, weight="weight"),
     }
- 
-    if RUN_GIRVAN_NEWMAN:
-        gn_partition, gn_q = girvan_newman_best(G)
-        gn_of = {w: k for k, c in enumerate(gn_partition) for w in c}
-        summary["n_communities_girvan_newman"] = len(gn_partition)
-        summary["modularity_girvan_newman"] = gn_q
-        summary["adjusted_rand_greedy_vs_girvan_newman"] = adjusted_rand_score(
-            [community_of[w] for w in G.nodes], [gn_of[w] for w in G.nodes])
     return G, nodes, summary
  
  
-graphs, node_tables, summaries, edge_sets = {}, {}, {}, {}
+cooc = {g: cooccurrence(rows_for(movies_by_group[g])) for g in GROUPS}
+graphs, node_tables, summaries = {}, {}, {}
 for g in GROUPS:
-    words, doc_freq, jac = cooccurrence(rows_for(movies_by_group[g]))
-    i, j, w = strongest_edges(jac)
-    graphs[g], node_tables[g], summaries[g] = analyse(build_graph(words, doc_freq, i, j, w))
-    edge_sets[g] = (set(words), edge_set(words, i, j))
+    graphs[g], node_tables[g], summaries[g] = analyse(network(cooc[g], THRESHOLDS[MAIN_THRESHOLD]))
  
 summary_df = pd.DataFrame(summaries)
 print("\n--- NETWORK SUMMARY ---")
@@ -253,71 +212,86 @@ for g in GROUPS:
     node_tables[g].to_csv(OUTPUT_DIR / f"network_nodes_{g}.csv", index=False)
  
  
-# Are the two networks different? Comparison with random relabelling
+# Are the two networks different? Comparison with random relabelling of the movies.
+# Repeated for every edge threshold: does the conclusion depend on the 10% choice?
 def jaccard_sets(a, b):
     return len(a & b) / len(a | b)
- 
- 
-def overlap(nodes_edges_a, nodes_edges_b):
-    return jaccard_sets(nodes_edges_a[0], nodes_edges_b[0]), jaccard_sets(nodes_edges_a[1], nodes_edges_b[1])
- 
- 
-obs_node_j, obs_edge_j = overlap(edge_sets[GROUPS[0]], edge_sets[GROUPS[1]])
- 
-# Spearman correlation of eigenvector centrality over the words present in both networks
-ev = {g: node_tables[g].set_index("word")["eigenvector"] for g in GROUPS}
-rho = spearman_common(ev[GROUPS[0]], ev[GROUPS[1]])
- 
+
+
+def p_low(perm_values, observed):
+    """Share of random relabellings at least as low as the observed value."""
+    return (1 + (np.array(perm_values) <= observed).sum()) / (1 + N_PERM)
+
+
+# The nodes are the top N_NODES words of each group, so node overlap does not depend on the threshold
+obs_node_j = jaccard_sets(set(cooc[GROUPS[0]][0]), set(cooc[GROUPS[1]][0]))
+
+# Observed values for every threshold
+obs_rho, density = {}, {}
+for name, keep_fraction in THRESHOLDS.items():
+    G = {g: network(cooc[g], keep_fraction) for g in GROUPS}
+    density[name] = [nx.density(G[g]) for g in GROUPS]
+    # Spearman correlation of eigenvector centrality over the words present in both networks
+    obs_rho[name] = spearman_common(eigen_centrality(G[GROUPS[0]]), eigen_centrality(G[GROUPS[1]]))
+
 # Relabelling the MOVIES at random (reviews of the same movie stay together)
 rng = np.random.default_rng(SEED)
 all_movies = np.array(extreme_movies["rotten_tomatoes_link"])
 n_first = len(movies_by_group[GROUPS[0]])
-perm_node_j, perm_edge_j, perm_rho = [], [], []
+perm_node_j = []
+perm_rho = {name: [] for name in THRESHOLDS}
 for _ in range(N_PERM):
     shuffled = rng.permutation(all_movies)
-    parts, evs = [], []
-    for movies in (shuffled[:n_first], shuffled[n_first:]):
-        words, doc_freq, jac = cooccurrence(rows_for(movies))
-        i, j, w = strongest_edges(jac)
-        parts.append((set(words), edge_set(words, i, j)))
-        evs.append(eigen_centrality(words, doc_freq, i, j, w))
-    nj, ej = overlap(parts[0], parts[1])
-    perm_node_j.append(nj)
-    perm_edge_j.append(ej)
-    perm_rho.append(spearman_common(evs[0], evs[1]))
-perm_node_j, perm_edge_j, perm_rho = np.array(perm_node_j), np.array(perm_edge_j), np.array(perm_rho)
- 
+    cooc_perm = [cooccurrence(rows_for(movies)) for movies in (shuffled[:n_first], shuffled[n_first:])]
+    perm_node_j.append(jaccard_sets(set(cooc_perm[0][0]), set(cooc_perm[1][0])))
+    for name, keep_fraction in THRESHOLDS.items():
+        G_a, G_b = [network(c, keep_fraction) for c in cooc_perm]
+        perm_rho[name].append(spearman_common(eigen_centrality(G_a), eigen_centrality(G_b)))
+
+# Main comparison (main threshold)
+m = MAIN_THRESHOLD
+perm_node_j, perm_rho_m = np.array(perm_node_j), np.array(perm_rho[m])
 comparison = pd.DataFrame({
-    "observed": [obs_node_j, obs_edge_j, rho],
-    "random_mean": [perm_node_j.mean(), perm_edge_j.mean(), perm_rho.mean()],
-    "random_5th_percentile": [np.percentile(perm_node_j, 5), np.percentile(perm_edge_j, 5),
-                              np.percentile(perm_rho, 5)],
+    "observed": [obs_node_j, obs_rho[m]],
+    "random_mean": [perm_node_j.mean(), perm_rho_m.mean()],
+    "random_5th_percentile": [np.percentile(perm_node_j, 5), np.percentile(perm_rho_m, 5)],
     # share of random relabellings at least as different (low overlap / low correlation) as the real groups
-    "p_value_one_sided": [(1 + (perm_node_j <= obs_node_j).sum()) / (1 + N_PERM),
-                          (1 + (perm_edge_j <= obs_edge_j).sum()) / (1 + N_PERM),
-                          (1 + (perm_rho <= rho).sum()) / (1 + N_PERM)],
-}, index=["node_overlap_jaccard", "edge_overlap_jaccard", "spearman_eigenvector_common_words"])
-print("\n--- COMPARISON OF THE TWO NETWORKS vs RANDOM RELABELLING ---")
+    "p_value_one_sided": [p_low(perm_node_j, obs_node_j), p_low(perm_rho_m, obs_rho[m])],
+}, index=["node_overlap_jaccard", "spearman_eigenvector_common_words"])
+print(f"\n--- COMPARISON OF THE TWO NETWORKS vs RANDOM RELABELLING (threshold: {m}) ---")
 print(comparison.round(4))
 comparison.to_csv(OUTPUT_DIR / "network_comparison.csv")
+
+# Sensitivity to the edge threshold
+sensitivity_df = pd.DataFrame({
+    name: {
+        f"density_{GROUPS[0]}": density[name][0],
+        f"density_{GROUPS[1]}": density[name][1],
+        "spearman_eigenvector": obs_rho[name],
+        "spearman_random_mean": np.mean(perm_rho[name]),
+        "spearman_p_value": p_low(perm_rho[name], obs_rho[name]),
+    } for name in THRESHOLDS
+})
+print("\n--- SENSITIVITY TO THE EDGE THRESHOLD ---")
+print(sensitivity_df.round(3))
+sensitivity_df.to_csv(OUTPUT_DIR / "network_threshold_sensitivity.csv")
  
  
-# Figure 1: the 30 most central words, coloured by community (greedy modularity).
-# Node size = eigenvector centrality. Community numbers (1 = largest) belong to each network separately,
-# so the same colour in the two panels does NOT mean the same community.
-N_SHOWN = 30   # only the most central words are drawn
+# Same colours as the other figures: blue = audience higher than critics, red = critics higher than audience
+COLORS = {"audience_higher": "#3b6fb6", "audience_lower": "#c0392b"}
+
+# Figure 1: the 30 most central words.
+# Node size = eigenvector centrality, colour = group.
+N_SHOWN = 30   # only the most central words 
  
  
-def draw(G, nodes, ax, title):
+def draw(G, nodes, ax, title, color):
     H = G.subgraph(nodes["word"].head(N_SHOWN))
     pos = nx.spring_layout(H, weight="weight", seed=SEED, k=1.5 / np.sqrt(len(H)))  # Fruchterman-Reingold
     ev_s = nodes.set_index("word")["eigenvector"]
-    comm = nodes.set_index("word")["community"]
-    palette = plt.get_cmap("tab10")
-    colors = [palette((comm[w] - 1) % 10) for w in H.nodes]
     sizes = [60 + 900 * ev_s[w] / ev_s.max() for w in H.nodes]   # area, relative to this network
     nx.draw_networkx_edges(H, pos, ax=ax, width=0.8, alpha=0.3, edge_color="grey")
-    nx.draw_networkx_nodes(H, pos, ax=ax, node_color=colors, node_size=sizes, alpha=0.85)
+    nx.draw_networkx_nodes(H, pos, ax=ax, node_color=color, node_size=sizes, alpha=0.85)
     nx.draw_networkx_labels(H, pos, ax=ax, font_size=8)
     ax.set_title(title)
     ax.axis("off")
@@ -327,19 +301,7 @@ titles = {"audience_higher": "Audience more generous than expected",
           "audience_lower": "Audience less generous than expected"}
 fig, axes = plt.subplots(1, 2, figsize=(13, 6))
 for ax, g in zip(axes, GROUPS):
-    draw(graphs[g], node_tables[g], ax, titles[g])
+    draw(graphs[g], node_tables[g], ax, titles[g], COLORS[g])
 plt.tight_layout()
 fig.savefig(FIG_DIR / "network_groups.pdf", bbox_inches="tight")
- 
-# Figure 2: degree distribution of the two networks (R: hist(degree) / degree_distribution)
-fig2, axes2 = plt.subplots(1, 2, figsize=(11, 4), sharey=True)
-for ax, g in zip(axes2, GROUPS):
-    deg = node_tables[g]["degree"]
-    ax.hist(deg, bins=np.arange(deg.min(), deg.max() + 2) - 0.5, color="grey", edgecolor="white")
-    ax.set_title(titles[g])
-    ax.set_xlabel("Degree")
-axes2[0].set_ylabel("Number of words")
-plt.tight_layout()
-fig2.savefig(FIG_DIR / "network_degree_distribution.pdf", bbox_inches="tight")
 plt.show()
- 

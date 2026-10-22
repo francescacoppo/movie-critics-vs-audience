@@ -1,0 +1,13 @@
+,audience_higher,audience_lower
+n_nodes_with_edges,100.0,100.0
+n_components,1.0,1.0
+n_nodes_largest_component,100.0,100.0
+n_edges_largest_component,495.0,497.0
+density,0.1,0.1004040404040404
+transitivity,0.2061030515257629,0.1866737176097303
+diameter,4.0,4.0
+avg_shortest_path_length,2.3012121212121213,2.2963636363636364
+mean_degree,9.9,9.94
+max_degree,29.0,23.0
+n_communities,6.0,7.0
+modularity,0.3047459620397506,0.3155179715373206

@@ -3,10 +3,6 @@ n_audience_higher,342.0
 n_audience_lower,342.0
 mean_audience_higher,0.22089138011695908
 mean_audience_lower,0.16115484210526315
-mean_diff_higher_minus_lower,0.05973653801169593
-mean_diff_ci95_low,0.03219687936948877
-mean_diff_ci95_high,0.08727619665390308
-cohen_d,0.32511687592524585
-prob_higher_gt_lower,0.589253958482952
-mannwhitney_U,68921.5
-mannwhitney_p_value,5.345805433325668e-05
+mean_diff,0.05973653801169593
+t_statistic,4.251454820993396
+p_value,2.421237190065409e-05

@@ -1,8 +1,0 @@
-,value
-n_topics,5
-seed,42
-n_reviews,84925
-n_terms,15073
-ngram_range,1-2
-min_df,10
-max_df,0.4

@@ -9,8 +9,8 @@ Adjusted R²: 0.1702
 Dep. Variable:                      D   R-squared:                       0.175
 Model:                            OLS   Adj. R-squared:                  0.170
 Method:                 Least Squares   F-statistic:                     41.57
-Date:                Mon, 12 Oct 2026   Prob (F-statistic):          1.79e-138
-Time:                        18:16:44   Log-Likelihood:                -14272.
+Date:                Thu, 22 Oct 2026   Prob (F-statistic):          1.79e-138
+Time:                        09:17:44   Log-Likelihood:                -14272.
 No. Observations:                3363   AIC:                         2.858e+04
 Df Residuals:                    3343   BIC:                         2.871e+04
 Df Model:                          19                                         
