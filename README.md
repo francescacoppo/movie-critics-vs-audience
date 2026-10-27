@@ -29,9 +29,11 @@ In this way the two groups have a comparable Tomatometer but a different audienc
 
 | Script | What it does |
 |---|---|
-| `01_...` / `03_...` / `04_...` | *(data loading, cleaning, review sampling: add the names of your scripts)* |
+| `01_cleaning.py`| Movie data cleaning |
 | `02_EDA.ipynb` | Exploratory analysis: distribution of `D`, mean `D` by genre and by content rating |
 | `02b_features.py` | Genre dummies, release period, extreme groups, expected audience score and residual |
+| `03_regression.py` | Model 1 OLS regression - genre, period, runtime, classification|
+| `04_reviews_sampling.py` | Reviews data cleaning and sampling|
 | `05_sentiment.py` | VADER sentiment of each review, validation against the fresh/rotten label, sentiment of the two groups (Welch t-test) |
 | `06_topics.py` | LDA topic model of the reviews |
 | `07_model2_regression.py` | Nested OLS regressions of `audience_resid` (robust HC3 standard errors) |
@@ -70,6 +72,7 @@ figures/          figures (pdf) produced by the scripts
 ## Data
 
 data/raw/rotten_tomatoes_critic_reviews.csv
+
 data/raw/rotten_tomatoes_movies.csv
 
 ## Requirements
