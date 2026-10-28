@@ -124,6 +124,6 @@ stats_df = pd.DataFrame(rows)
 
 print(f"\n--- TOPIC SHARES: audience_higher ({len(higher)}) vs audience_lower ({len(lower)}) ---")  # no difference, p-value not significant
 print(stats_df.round(4).to_string(index=False))
-stats_df.to_csv(OUTPUT_DIR / "lda_group_comparison_stats.csv", index=False)
+stats_df.to_csv(OUTPUT_DIR / "group_comparison_stats.csv", index=False)
 
 

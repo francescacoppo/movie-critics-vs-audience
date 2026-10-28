@@ -34,7 +34,7 @@ for pos, d in enumerate(data, start=1):
     ax.scatter(pos + rng.uniform(-0.15, 0.15, len(d)), d, s=5, color="black", alpha=0.2, linewidths=0)
 
 p_text = "p < 0.001" if test["p_value"] < 0.001 else f"p = {test['p_value']:.3f}"
-ax.set_xticklabels(["Audience higher\nthan critics", "Critics higher\nthan audience"])
+ax.set_xticklabels(["Audience higher \nthan expected", "Audience lower \nthan expected"])
 ax.set_ylabel("Mean VADER compound score per film")
 ax.set_title("Mean sentiment of critic reviews, by group", fontsize=11)
 ax.set_xlabel(f"Difference in means = {test['mean_diff']:.3f} (Welch t = {test['t_statistic']:.2f}, {p_text})",
