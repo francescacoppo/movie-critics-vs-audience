@@ -8,8 +8,8 @@ Robust standard errors: HC3
 Dep. Variable:                      D   R-squared:                       0.173
 Model:                            OLS   Adj. R-squared:                  0.168
 Method:                 Least Squares   F-statistic:                     40.77
-Date:                Thu, 22 Oct 2026   Prob (F-statistic):          5.49e-136
-Time:                        09:17:42   Log-Likelihood:                -14419.
+Date:                Tue, 27 Oct 2026   Prob (F-statistic):          5.49e-136
+Time:                        09:35:41   Log-Likelihood:                -14419.
 No. Observations:                3397   AIC:                         2.888e+04
 Df Residuals:                    3377   BIC:                         2.900e+04
 Df Model:                          19                                         
