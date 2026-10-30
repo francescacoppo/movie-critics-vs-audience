@@ -13,7 +13,7 @@ OUTPUT_DIR = BASE_DIR / "results"
 FIG_DIR = BASE_DIR / "figures"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
-# Same colours as the other figures: blue = audience higher than critics, red = critics higher than audience
+# Same colours as the other figures: blue = audience higher than expected, red = audience lower than expected
 GROUPS = ["audience_higher", "audience_lower"]
 COLORS = {"audience_higher": "#3b6fb6", "audience_lower": "#c0392b"}
 

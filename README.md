@@ -35,9 +35,9 @@ In this way the two groups have a comparable Tomatometer but a different audienc
 | `03_regression.py` | Model OLS regression - genre, period, runtime, classification|
 | `04_reviews_sampling.py` | Reviews data cleaning and sampling|
 | `05_sentiment.py` | VADER sentiment of each review, validation against the fresh/rotten label, sentiment of the two groups (Welch t-test) |
-| `06_topics.py` | LDA topic model of the reviews |
+| `06_topics.py` | LDA topic model of the reviews | (takes 3-5 minutes to run)
 | `07_model2_regression.py` | Nested OLS regressions of `audience_resid` (robust HC3 standard errors) |
-| `08_network.py` | Word co-occurrence networks of the two groups and comparison with random relabelling |
+| `08_network.py` | Word co-occurrence networks of the two groups and comparison with random relabelling | (takes 2 minutes to run)
 | `09_figures.py` | Sentiment figure and summary table of the models for the report |
 
 Run the scripts in this order from the root of the repository.
@@ -57,7 +57,7 @@ Run the scripts in this order from the root of the repository.
 
 ## Colours
 
-Same convention in all figures: blue = audience higher than critics, red = critics higher than audience.
+Same convention in all figures: blue = audience higher than expected, red = audience lower than expected.
 
 ## Repository structure
 
@@ -75,12 +75,14 @@ data/raw/rotten_tomatoes_critic_reviews.csv
 
 data/raw/rotten_tomatoes_movies.csv
 
+source: https://www.kaggle.com/datasets/stefanoleone992/rotten-tomatoes-movies-and-critic-reviews-dataset
+
 ## Requirements
 
-Python 3 with: `pandas`, `numpy`, `scipy`, `scikit-learn`, `nltk` (VADER lexicon), `networkx`, `matplotlib`, `statsmodels`.
+Python 3 with: `pandas`, `numpy`, `scipy`, `scikit-learn`, `nltk` (VADER lexicon), `networkx`, `matplotlib`, `statsmodels`, `seaborn`.
 
 ```
-pip install pandas numpy scipy scikit-learn nltk networkx matplotlib statsmodels
+pip install pandas numpy scipy scikit-learn nltk networkx matplotlib statsmodels seaborn
 ```
 
 ## Author

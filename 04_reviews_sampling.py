@@ -84,8 +84,7 @@ reviews_sample = sampled_reviews[cols_to_keep].copy()
 output_sample_path = PROCESSED_DIR / "reviews_sample.csv"
 reviews_sample.to_csv(output_sample_path, index=False)
     
-# Share of reviews 'fresh' vs Tomatometer
-df_reviews["review_type"].value_counts()
+
 print("\nCONSISTENCY CHECK (Fresh Quota vs Tomatometer)")
 # Binary column (1 if 'fresh', 0 otherwise)
 sampled_reviews["is_fresh"] = (sampled_reviews["review_type"].str.lower() == "fresh").astype(int)

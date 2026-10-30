@@ -1,12 +1,11 @@
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from scipy.stats import mannwhitneyu
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
-from statsmodels.stats.multitest import multipletests
+
 
 BASE_DIR = Path.cwd()
 PROCESSED_DIR = BASE_DIR / "data" / "processed"
@@ -16,8 +15,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 #  settings 
 N_TOPICS = 5
 SEED = 42
-N_TOP_WORDS = 12
-CHECK_STABILITY = True   
+N_TOP_WORDS = 12  
 
 GENRE_COLS = [
     "action_adventure", "animation", "comedy", "documentary", "drama", "horror",
@@ -120,7 +118,6 @@ for col in topic_cols:
     })
 
 stats_df = pd.DataFrame(rows)
-#stats_df["p_value_holm"] = multipletests(stats_df["p_value"], method="holm")[1]   no significance (= 1.0)
 
 print(f"\n--- TOPIC SHARES: audience_higher ({len(higher)}) vs audience_lower ({len(lower)}) ---")  # no difference, p-value not significant
 print(stats_df.round(4).to_string(index=False))

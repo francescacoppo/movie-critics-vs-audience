@@ -7,7 +7,6 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from statsmodels.graphics.gofplots import qqplot
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-#from statsmodels.tools.tools import add_constant
 
 BASE_DIR = Path.cwd()
 print(BASE_DIR) 

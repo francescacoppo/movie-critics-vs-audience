@@ -277,7 +277,7 @@ print(sensitivity_df.round(3))
 sensitivity_df.to_csv(OUTPUT_DIR / "network_threshold_sensitivity.csv")
  
  
-# Same colours as the other figures: blue = audience higher than critics, red = critics higher than audience
+# Same colours as the other figures: blue = audience higher than expected, red = audience lower than expected
 COLORS = {"audience_higher": "#3b6fb6", "audience_lower": "#c0392b"}
 
 # Figure 1: the 30 most central words.

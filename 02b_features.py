@@ -50,23 +50,9 @@ df["period"] = pd.Categorical(
 # Merge NC17 in R
 df["content_rating"] = df["content_rating"].replace({"NC17": "R", "NC-17": "R"})
 
-# Label d variable 
-d = pd.to_numeric(df["D"], errors="coerce")
-q10 = d.quantile(0.10)
-q90 = d.quantile(0.90)
-df["group"] = pd.Series("middle", index=df.index, dtype="object")
-df.loc[d.notna() & (d <= q10), "group"] = "audience_lower"
-df.loc[d.notna() & (d >= q90), "group"] = "audience_higher"
-
-
-#print(df.groupby("group")["D"].agg(["count", "min", "max"]))
 
 print(df[["D", "tomatometer_rating"]].corr())
-print(df.groupby("group")["tomatometer_rating"].agg(["mean", "median", "count"]))
 
-# Extreme groups that hold the Tomatometer fixed 
-# rename D-based so they are not confused
-df = df.rename(columns={"group": "group_D"})
 
 # 1) Audience score expected from the Tomatometer (quadratic curve, because the relation is not exactly linear: ceiling effect at the extremes)
 coefs = np.polyfit(df["tomatometer_rating"], df["audience_rating"], deg=2)
@@ -88,7 +74,6 @@ df.loc[df["audience_resid"] >= high, "group_resid"] = "audience_higher"
 df["tomato_bin"] = df["tomato_bin"].astype(str)   # so it saves cleanly to CSV
 
 # Checks 
-print(df.groupby("group_D")["D"].agg(["count", "min", "max"]))
 print(df.groupby("group_resid")["tomatometer_rating"].agg(["mean", "median", "std", "count"]).round(1))
 print(df.groupby("group_resid")["audience_resid"].agg(["min", "max"]).round(1))
 
