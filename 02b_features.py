@@ -47,7 +47,7 @@ df["period"] = pd.Categorical(
     ordered=True,
 )
 
-# Merge NC17 in R
+# Merge NC17 (8 films) in R 
 df["content_rating"] = df["content_rating"].replace({"NC17": "R", "NC-17": "R"})
 
 
@@ -71,7 +71,7 @@ high = by_bin.transform(lambda s: s.quantile(0.90))
 df["group_resid"] = "middle"
 df.loc[df["audience_resid"] <= low, "group_resid"] = "audience_lower"
 df.loc[df["audience_resid"] >= high, "group_resid"] = "audience_higher"
-df["tomato_bin"] = df["tomato_bin"].astype(str)   # so it saves cleanly to CSV
+df["tomato_bin"] = df["tomato_bin"].astype(str)   
 
 # Checks 
 print(df.groupby("group_resid")["tomatometer_rating"].agg(["mean", "median", "std", "count"]).round(1))

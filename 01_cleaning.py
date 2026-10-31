@@ -7,10 +7,10 @@ PROCESSED_DIR = BASE_DIR / "data" / "processed"
 
 df = pd.read_csv(RAW_DIR / "rotten_tomatoes_movies.csv")
 
-print(df.shape)  #17712 observations, 22 variables
+print(df.shape)  #17.712 observations, 22 variables
 df.info()
 print(df.isna().sum())
-print(df.duplicated().sum()) # no duplicated
+print(df.duplicated().sum()) # no duplicates
 
 # NA CLEANING
 df = df.dropna(
@@ -22,7 +22,7 @@ df = df.dropna(
     ]
 )
 
-print("After deleting NaN rating/count:", len(df)) #17406
+print("After deleting NaN rating/count:", len(df)) #17.406
 
 # THRESHOLD 100 RATINGS 
 df = df[
@@ -30,7 +30,7 @@ df = df[
     (df["audience_count"] >= 100)
 ]
 
-print("After threshold >=100 / >=100:", len(df))   #3428
+print("After threshold >=100 / >=100:", len(df))   #3.428
 
 # DATE HANDLING
 print(df[[
