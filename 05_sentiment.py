@@ -34,9 +34,9 @@ df_rev.to_csv(PROCESSED_DIR / "reviews_sentiment.csv", index=False)
 
 # Validation against the fresh/rotten label
 n_reviews = len(df_rev)
-share_fresh = df_rev["is_fresh"].mean()
-accuracy = (df_rev["predicted_fresh"] == df_rev["is_fresh"]).mean()
-auc = roc_auc_score(df_rev["is_fresh"], df_rev["sentiment_score"])
+share_fresh = df_rev["is_fresh"].mean() 
+accuracy = (df_rev["predicted_fresh"] == df_rev["is_fresh"]).mean() 
+auc = roc_auc_score(df_rev["is_fresh"], df_rev["sentiment_score"]) 
 share_zero = (df_rev["sentiment_score"] == 0).mean()
 
 by_label = df_rev.groupby("review_type")["sentiment_score"].agg(
@@ -55,18 +55,18 @@ confusion = pd.crosstab(
 )
 
 print("\n--- VALIDATION: VADER vs fresh/rotten label ---")
-print(f"Baseline (always 'fresh'): {share_fresh:.3f}")
-print(f"Accuracy (threshold > 0): {accuracy:.3f}")
-print(f"ROC AUC: {auc:.3f}")
-print(f"Reviews with compound == 0: {share_zero:.2%}")
+print(f"Baseline (always 'fresh'): {share_fresh:.3f}") # 0.620
+print(f"Accuracy (threshold > 0): {accuracy:.3f}") # 0.639
+print(f"ROC AUC: {auc:.3f}")  # 0.674
+print(f"Reviews with compound == 0: {share_zero:.2%}") # 11.48%
 
 print("\nSentiment by label:")
-print(by_label.round(3))
+print(by_label.round(3)) # fresh have higher mean
 
 print("\nConfusion matrix (normalized):")
 print(confusion.round(3))
 
-# MOVIE LEVEL
+# MOVIE LEVEL mean reviews sentiment and fresh share
 movie_sentiment = (
     df_rev.groupby("rotten_tomatoes_link")
     .agg(mean_review_sentiment=("sentiment_score", "mean"),

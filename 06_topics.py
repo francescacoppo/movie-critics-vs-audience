@@ -48,7 +48,7 @@ extra_stop_words = [
 stop_words = list(ENGLISH_STOP_WORDS.union(extra_stop_words))
 
 # ----------  Document-term matrix (ALL reviews) ----------
-vectorizer = CountVectorizer(ngram_range=(1, 2), max_df=0.4, min_df=10, stop_words=stop_words)
+vectorizer = CountVectorizer(ngram_range=(1, 2), max_df=0.4, min_df=10, stop_words=stop_words) #unigrams and bigrams
 dtm = vectorizer.fit_transform(texts)
 feature_names = vectorizer.get_feature_names_out()
 print(f"Document-term matrix: {dtm.shape[0]} reviews x {dtm.shape[1]} terms")
